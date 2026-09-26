@@ -1,0 +1,95 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Social calendar · Roxy</title><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<style>
+:root{color-scheme:light;--ink:#0B1220;--slate:#3D4858;--steel:#6B7689;--cloud:#ECEEF3;--snow:#F7F8FB;--pink:#E3187C}
+*{box-sizing:border-box}body{margin:0;font-family:"Sofia Sans",Inter,system-ui,sans-serif;background:var(--snow);color:var(--ink)}
+header{padding:20px 24px 8px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+h1{font-size:26px;font-style:italic;font-weight:800;letter-spacing:-.02em;margin:0}
+.meta{color:var(--steel);font-size:13px}
+.btn{border:1px solid #C9D0DC;background:#fff;border-radius:999px;padding:6px 14px;font-weight:700;cursor:pointer;font-size:13px}
+.legend{display:flex;gap:10px;flex-wrap:wrap;padding:0 24px 12px;font-size:12px;color:var(--slate)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.wrap{overflow:auto;padding:0 24px 32px}
+table{border-collapse:separate;border-spacing:0;min-width:1400px;width:100%}
+th,td{border-bottom:1px solid var(--cloud);border-right:1px solid var(--cloud);vertical-align:top;padding:6px}
+thead th{position:sticky;top:0;background:#fff;z-index:2;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--slate);text-align:left}
+thead th.today{color:var(--pink)}
+th.brand{position:sticky;left:0;background:#fff;z-index:3;min-width:150px;font-size:14px;text-align:left}
+th.brand small{display:block;font-weight:500;color:var(--steel);font-size:11px;letter-spacing:0;text-transform:none}
+td{background:#fff;min-width:150px}
+.slot{font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--steel);margin:2px 0 3px}
+.card{border-radius:8px;padding:6px;margin-bottom:6px;font-size:12px;line-height:1.3;border:1px solid var(--cloud);border-left-width:4px}
+.card img{width:100%;border-radius:4px;display:block;margin-bottom:4px}
+.card b{display:block;font-size:12px}
+.card .n{color:var(--steel);font-size:11px;margin-top:2px}
+.tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border-radius:4px;padding:1px 5px;margin-right:4px;background:var(--snow);color:var(--slate)}
+.empty{border:1px dashed #C9D0DC;border-radius:8px;padding:10px 6px;font-size:11px;color:#9aa3b2;text-align:center;margin-bottom:6px}
+.s-published{border-left-color:#00E0B2}.s-queued{border-left-color:#B81FD8}.s-failed{border-left-color:#FF4A4A}
+.s-ready{border-left-color:#E3187C}.s-draft{border-left-color:#FFB020}.s-rebuild{border-left-color:#C9D0DC;opacity:.85}
+.plat{font-size:10px;color:var(--steel)}
+</style></head><body>
+<header><h1>Social calendar</h1><span class="meta" id="range"></span>
+<button class="btn" id="prev">‹ Earlier</button><button class="btn" id="next">Later ›</button>
+<span class="meta" id="live">Loading…</span><button class="btn" id="refresh">Refresh</button></header>
+<div class="legend">
+<span><i class="dot" style="background:#00E0B2"></i>Published</span>
+<span><i class="dot" style="background:#B81FD8"></i>Queued in Dispatch</span>
+<span><i class="dot" style="background:#E3187C"></i>Approved, waiting on your OK</span>
+<span><i class="dot" style="background:#FFB020"></i>Draft, final audit pending</span>
+<span><i class="dot" style="background:#C9D0DC"></i>Being rebuilt</span>
+<span><i class="dot" style="background:#FF4A4A"></i>Failed</span>
+<span>Slots: 8:30am and 6pm Adelaide (Plate Snob: 12:30pm and 7pm UAE). Dashed = open slot.</span></div>
+<div class="wrap"><table id="t"></table></div>
+<script>
+let PLAN=[];
+const BRANDS=[['cartell','CarTell.tv','FB + IG'],['ebikefinder','eBikeFinder','FB + IG'],['bikefinder','BikeFinder','FB + IG'],['ridefinder','RideFinder','FB + IG'],['scootfinder','ScootFinder','pages not linked yet'],['caravanscout','CaravanScout','FB only'],['platesnob','Plate Snob','FB + IG, UAE time'],['wattsup','evibe','Evibe.au FB + IG'],['tinywhips','TinyWhips','FB only'],['pramkin','Pramkin','FB + IG']];
+let start=new Date('2026-09-26T00:00:00'); const DAYS=9; let LIVE=[];
+const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function localParts(iso,tz){const f=new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});const p=Object.fromEntries(f.formatToParts(new Date(String(iso).replace(' ','T').replace(/\+00$/,'Z'))).map(x=>[x.type,x.value]));return {day:`${p.year}-${p.month}-${p.day}`,hh:+p.hour%24,mm:p.minute}}
+const FEED='https://vjbvkaarpcviriyswppj.supabase.co/functions/v1/social-calendar-feed';
+function getCode(){let c=null;try{c=localStorage.getItem('roxyCode')}catch(e){}return c}
+async function loadLive(force){
+  let code=getCode();
+  if(!code||force){code=prompt('Passcode for the social calendar');if(!code)return;try{localStorage.setItem('roxyCode',code)}catch(e){}}
+  document.getElementById('live').textContent='Loading…';
+  try{
+    const r=await fetch(FEED,{headers:{'x-code':code}});
+    if(r.status===401){try{localStorage.removeItem('roxyCode')}catch(e){};document.getElementById('live').textContent='Wrong passcode';return loadLive(true);}
+    const j=await r.json(); PLAN=(j.plan||[]).map(p=>({...p,brand:p.network}));
+    const g={};
+    for(const r of j.live){const tz=r.network==='platesnob'?'Asia/Dubai':'Australia/Adelaide';const lp=localParts(r.scheduled_at,tz);const slot=lp.hh<14?'am':'pm';const k=r.network+'|'+lp.day+'|'+slot+'|'+r.cap.slice(0,40);
+      if(!g[k]) g[k]={network:r.network,day:lp.day,slot,time:`${lp.hh}:${lp.mm}`,cap:r.cap,type:r.type,n:r.n,media:r.media,plats:[],status:r.status,err:r.err};
+      g[k].plats.push(r.platform+(r.status==='published'?' ✓':r.status==='failed'?' ✗':''));
+      const rank={failed:4,queued:3,publishing:3,published:1};if((rank[r.status]||0)>(rank[g[k].status]||0)) g[k].status=r.status;}
+    LIVE=Object.values(g);
+    document.getElementById('live').textContent='Updated '+new Date(j.generated).toLocaleString('en-AU',{timeZone:'Australia/Adelaide',hour:'numeric',minute:'2-digit',day:'numeric',month:'short'})+' Adelaide';
+  }catch(e){console.error(e);document.getElementById('live').textContent='Could not load the calendar';}
+  render();
+}
+function render(){
+  const days=[...Array(DAYS)].map((_,i)=>{const d=new Date(start);d.setDate(d.getDate()+i);return d});
+  const today=ymd(new Date());
+  document.getElementById('range').textContent=days[0].toDateString().slice(0,10)+' to '+days[DAYS-1].toDateString().slice(0,10);
+  let h='<thead><tr><th class="brand">Brand</th>'+days.map(d=>`<th class="${ymd(d)===today?'today':''}">${d.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'})}${ymd(d)==='2026-10-04'?'<br><span style="font-weight:500;text-transform:none;letter-spacing:0">Clocks forward</span>':''}${ymd(d)==='2026-10-05'?'<br><span style="font-weight:500;text-transform:none;letter-spacing:0">Public holiday</span>':''}</th>`).join('')+'</tr></thead><tbody>';
+  for(const [key,name,sub] of BRANDS){
+    h+=`<tr><th class="brand">${name}<small>${sub}</small></th>`;
+    for(const d of days){const day=ymd(d);h+='<td>';
+      for(const slot of ['am','pm']){
+        const lbl=key==='platesnob'?(slot==='am'?'12:30 PM GST':'7:00 PM GST'):(slot==='am'?'8:30 AM':'6:00 PM');
+        h+=`<div class="slot">${lbl}</div>`;
+        const live=LIVE.filter(x=>x.network===key&&x.day===day&&x.slot===slot);
+        const plans=PLAN.filter(x=>x.brand===key&&x.day===day&&x.slot===slot);
+        for(const x of live) h+=`<div class="card s-${x.status==='publishing'?'queued':x.status}">${x.media&&/\.(jpe?g|png)$/i.test(x.media)?`<img src="${x.media}" loading="lazy">`:''}<span class="tag">${esc(x.type)}${x.n>1?' ×'+x.n:''}</span><span class="tag">${esc(x.status)} ${esc(x.time)}</span><b>${esc(x.cap)}…</b><div class="plat">${esc(x.plats.join(' · '))}</div>${x.err?`<div class="n" style="color:#FF4A4A">${esc(x.err)}</div>`:''}</div>`;
+        if(!live.length) for(const p of plans) h+=`<div class="card s-${p.status}">${p.thumb?`<img src="${p.thumb}">`:''}<span class="tag">${esc(p.type)}</span><b>${esc(p.hook)}</b><div class="n">${esc(p.series)}</div><div class="n">${esc(p.note)}</div></div>`;
+        if(!live.length&&!plans.length) h+='<div class="empty">Open slot</div>';
+      }
+      h+='</td>';}
+    h+='</tr>';}
+  document.getElementById('t').innerHTML=h+'</tbody>';
+}
+document.getElementById('prev').onclick=()=>{start.setDate(start.getDate()-7);render()};
+document.getElementById('next').onclick=()=>{start.setDate(start.getDate()+7);render()};
+document.getElementById('refresh').onclick=()=>loadLive();
+start=new Date();start.setHours(0,0,0,0);start.setDate(start.getDate()-1);
+render(); loadLive();
+</script></body></html>
