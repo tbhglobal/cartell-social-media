@@ -37,12 +37,12 @@ td{background:#fff;min-width:150px}
 <span><i class="dot" style="background:#FFB020"></i>Draft, final audit pending</span>
 <span><i class="dot" style="background:#C9D0DC"></i>Being rebuilt</span>
 <span><i class="dot" style="background:#FF4A4A"></i>Failed</span>
-<span>Slots: 8:30am and 6pm Adelaide (Plate Snob: 12:30pm and 7pm UAE). Dashed = open slot.</span></div>
+<span>Slots: 8:30am and 6pm Adelaide (Plate Snob: 9am and 7pm UAE). Dashed = open slot.</span></div>
 <div class="wrap"><table id="t"></table></div>
 <script>
 let PLAN=[];
-const BRANDS=[['cartell','CarTell.tv','FB + IG'],['ebikefinder','eBikeFinder','FB + IG'],['bikefinder','BikeFinder','FB + IG'],['ridefinder','RideFinder','FB + IG'],['scootfinder','ScootFinder','pages not linked yet'],['caravanscout','CaravanScout','FB only'],['platesnob','Plate Snob','FB + IG, UAE time'],['wattsup','evibe','Evibe.au FB + IG'],['tinywhips','TinyWhips','FB only'],['pramkin','Pramkin','FB + IG']];
-let start=new Date('2026-09-26T00:00:00'); const DAYS=9; let LIVE=[];
+const BRANDS=[['cartell','CarTell.tv','FB + IG'],['cartellx','CarTell.tv on X','X via Buffer'],['ebikefinder','eBikeFinder','FB + IG'],['bikefinder','BikeFinder','FB + IG'],['ridefinder','RideFinder','FB + IG'],['scootfinder','ScootFinder','pages not linked yet'],['caravanscout','CaravanScout','FB only'],['platesnob','Plate Snob','FB + IG, UAE time'],['wattsup','evibe','Evibe.au FB + IG'],['tinywhips','TinyWhips','FB only'],['pramkin','Pramkin','FB + IG']];
+let start=new Date(); start.setHours(0,0,0,0); start.setDate(start.getDate()-1); const DAYS=9; let LIVE=[];
 const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function localParts(iso,tz){const f=new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});const p=Object.fromEntries(f.formatToParts(new Date(String(iso).replace(' ','T').replace(/\+00$/,'Z'))).map(x=>[x.type,x.value]));return {day:`${p.year}-${p.month}-${p.day}`,hh:+p.hour%24,mm:p.minute}}
