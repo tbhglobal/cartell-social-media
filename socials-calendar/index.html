@@ -75,12 +75,12 @@ function render(){
     h+=`<tr><th class="brand">${name}<small>${sub}</small></th>`;
     for(const d of days){const day=ymd(d);h+='<td>';
       for(const slot of ['am','pm']){
-        const lbl=key==='platesnob'?(slot==='am'?'12:30 PM GST':'7:00 PM GST'):(slot==='am'?'8:30 AM':'6:00 PM');
+        const lbl=key==='platesnob'?(slot==='am'?'9:00 AM GST':'7:00 PM GST'):(slot==='am'?'8:30 AM':'6:00 PM');
         h+=`<div class="slot">${lbl}</div>`;
         const live=LIVE.filter(x=>x.network===key&&x.day===day&&x.slot===slot);
         const plans=PLAN.filter(x=>x.brand===key&&x.day===day&&x.slot===slot);
-        for(const x of live) h+=`<div class="card s-${x.status==='publishing'?'queued':x.status}">${x.media&&/\.(jpe?g|png)$/i.test(x.media)?`<img src="${x.media}" loading="lazy">`:''}<span class="tag">${esc(x.type)}${x.n>1?' ×'+x.n:''}</span><span class="tag">${esc(x.status)} ${esc(x.time)}</span><b>${esc(x.cap)}…</b><div class="plat">${esc(x.plats.join(' · '))}</div>${x.err?`<div class="n" style="color:#FF4A4A">${esc(x.err)}</div>`:''}</div>`;
-        if(!live.length) for(const p of plans) h+=`<div class="card s-${p.status}">${p.thumb?`<img src="${p.thumb}">`:''}<span class="tag">${esc(p.type)}</span><b>${esc(p.hook)}</b><div class="n">${esc(p.series)}</div><div class="n">${esc(p.note)}</div></div>`;
+        for(const x of live) h+=`<div class="card s-${x.status==='publishing'?'queued':x.status}">${x.media?(/\.mp4$/i.test(x.media)?`<video src="${x.media}#t=1" muted playsinline preload="metadata" style="width:100%;border-radius:8px"></video>`:(/\.(jpe?g|png)$/i.test(x.media)?`<img src="${x.media}" loading="lazy" onerror="this.remove()">`:'')):''}<span class="tag">${esc(x.type)}${x.n>1?' ×'+x.n:''}</span><span class="tag">${esc(x.status)} ${esc(x.time)}</span><b>${esc(x.cap)}…</b><div class="plat">${esc(x.plats.join(' · '))}</div>${x.err?`<div class="n" style="color:#FF4A4A">${esc(x.err)}</div>`:''}</div>`;
+        if(!live.length) for(const p of plans) h+=`<div class="card s-${p.status}">${p.thumb?`<img src="${p.thumb}" onerror="this.remove()">`:''}<span class="tag">${esc(p.type)}</span><b>${esc(p.hook)}</b><div class="n">${esc(p.series)}</div><div class="n">${esc(p.note)}</div></div>`;
         if(!live.length&&!plans.length) h+='<div class="empty">Open slot</div>';
       }
       h+='</td>';}
