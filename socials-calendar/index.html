@@ -41,7 +41,7 @@ td{background:#fff;min-width:150px}
 <div class="wrap"><table id="t"></table></div>
 <script>
 let PLAN=[];
-const BRANDS=[['cartell','CarTell.tv','FB + IG'],['cartellx','CarTell.tv on X','X via Buffer'],['ebikefinder','eBikeFinder','FB + IG'],['bikefinder','BikeFinder','FB + IG'],['ridefinder','RideFinder','FB + IG'],['scootfinder','ScootFinder','IG only, FB needs token'],['caravanscout','CaravanScout','FB + IG'],['platesnob','Plate Snob','FB + IG, UAE time'],['wattsup','evibe','Evibe.au FB only, IG not linked'],['tinywhips','TinyWhips','FB only'],['pramkin','Pramkin','FB + IG']];
+const BRANDS=[['cartell','CarTell.tv','FB + IG'],['cartellx','CarTell.tv on X','X via Buffer'],['ebikefinder','eBikeFinder','FB + IG'],['bikefinder','BikeFinder','FB + IG'],['ridefinder','RideFinder','FB + IG'],['scootfinder','ScootFinder','FB + IG'],['caravanscout','CaravanScout','FB + IG'],['platesnob','Plate Snob','FB + IG, UAE time'],['wattsup','evibe','Evibe.au FB only, IG not linked'],['tinywhips','TinyWhips','FB only'],['pramkin','Pramkin','FB + IG']];
 let start=new Date(); start.setHours(0,0,0,0); start.setDate(start.getDate()-1); const DAYS=9; let LIVE=[];
 const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
