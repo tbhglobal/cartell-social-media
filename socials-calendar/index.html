@@ -41,7 +41,7 @@ td{background:#fff;min-width:150px}
 <div class="wrap"><table id="t"></table></div>
 <script>
 let PLAN=[];
-const BRANDS=[['cartell','CarTell.tv','FB + IG'],['cartellx','CarTell.tv on X','X via Buffer'],['ebikefinder','eBikeFinder','FB + IG'],['bikefinder','BikeFinder','FB + IG'],['ridefinder','RideFinder','FB + IG'],['scootfinder','ScootFinder','FB + IG'],['caravanscout','CaravanScout','FB + IG'],['platesnob','Plate Snob','FB + IG, UAE time'],['wattsup','evibe','Evibe.au FB + @evibe.au IG'],['tinywhips','TinyWhips','FB only, IG blocked by Meta'],['pramkin','Pramkin','FB + IG']];
+const BRANDS=[['cartell','CarTell.tv','FB + IG'],['cartellx','CarTell.tv on X','X via Buffer'],['cartelltt','CarTell.tv on TikTok','cartell.tv via Buffer, 7pm daily'],['ebikefinder','eBikeFinder','FB + IG'],['bikefinder','BikeFinder','FB + IG'],['ridefinder','RideFinder','FB + IG'],['ridefindertt','RideFinder on TikTok','ridefinderau via Buffer, 6:30pm daily'],['scootfinder','ScootFinder','FB + IG'],['caravanscout','CaravanScout','FB + IG'],['platesnob','Plate Snob','FB + IG, UAE time'],['wattsup','evibe','Evibe.au FB + @evibe.au IG'],['tinywhips','TinyWhips','FB only, IG blocked by Meta'],['pramkin','Pramkin','FB + IG']];
 let start=new Date(); start.setHours(0,0,0,0); start.setDate(start.getDate()-1); const DAYS=9; let LIVE=[];
 const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
@@ -74,8 +74,8 @@ function render(){
   for(const [key,name,sub] of BRANDS){
     h+=`<tr><th class="brand">${name}<small>${sub}</small></th>`;
     for(const d of days){const day=ymd(d);h+='<td>';
-      for(const slot of ['am','pm']){
-        const lbl=key==='platesnob'?(slot==='am'?'9:00 AM GST':'7:00 PM GST'):(slot==='am'?'8:30 AM':'6:00 PM');
+      for(const slot of (key.endsWith('tt')?['pm']:['am','pm'])){
+        const lbl=key==='ridefindertt'?'6:30 PM':key==='cartelltt'?'7:00 PM':key==='platesnob'?(slot==='am'?'9:00 AM GST':'7:00 PM GST'):(slot==='am'?'8:30 AM':'6:00 PM');
         h+=`<div class="slot">${lbl}</div>`;
         const live=LIVE.filter(x=>x.network===key&&x.day===day&&x.slot===slot);
         const plans=PLAN.filter(x=>x.brand===key&&x.day===day&&x.slot===slot);
